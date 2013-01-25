@@ -195,6 +195,13 @@ proc respond_notfound {chan path} {
 #
 # # ## ### ##### ######## ############# #####################
 
+proc my_ipaddress {} {
+    set srv [socket -server none -myaddr [info hostname] 0]
+    set myip [lindex [fconfigure $srv -sockname] 0]
+    close $srv
+    return $myip
+}
+
 socket -server serve $O(port)
-puts "Serving on port $O(port)"
+puts "Serving on [my_ipaddress]:$O(port)"
 vwait forever
