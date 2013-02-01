@@ -170,7 +170,7 @@ proc respond_luacollection {chan path} {
     }
     foreach f $files {
         verbose "  adding file $f"
-        append cat "\n-- File $f\n"
+        append cat "\n--# [file root [file tail $f]]\n"
         set ff [open $f "r"]
         append cat [read $ff]
         close $ff
