@@ -77,19 +77,14 @@ loco.soundCache = {}
 DeltaTime   = 0
 ElapsedTime = 0
 
-iwatch = iwatch or function() end
 point = point or function() end
 pointSize = pointSize or function() end
 rsqrt = rsqrt or function() end
 setInstructionLimit = setInstructionLimit or function() end
 setup = setup or function() end
 UserAcceleration = {} --[[ (0.000000, 0.000000, 0.000000)]]--
-watch = watch or function() end
 zLevel = zLevel or function() end
 
-
-iwatchList = {}
-watchList = {}
 
 CurrentTouch = {}
 CurrentTouch.x = 0
@@ -135,18 +130,6 @@ function soundBufferSize()
 end
 
 -------------------
--- Watches
--------------------
-
-function watch(name)
-    watchList[name] = 0
-end
-
-function iwatch(name)
-    iwatchList[name] = 0
-end
-
--------------------
 -- Math
 -------------------
 
@@ -188,7 +171,9 @@ end
 ]]--
 
 function love.keypressed(key)
-    if love.keyboard.isDown("lctrl", "rctrl") then
+    if loco.focus ~= nil then
+        loco.parameterKeyboard(key)
+    elseif love.keyboard.isDown("lctrl", "rctrl") then
         if key == "h" then
             loco.showhud = not loco.showhud
         elseif key == "8" then
@@ -217,6 +202,7 @@ function love.keypressed(key)
 end
 
 loco.touch_is_in_output = false
+loco.focus = nil
 
 function love.update(dt)
 
@@ -254,6 +240,7 @@ function love.update(dt)
                 CurrentTouch.deltaY = 0
                 CurrentTouch.tapCount = CurrentTouch.tapCount + 1
                 loco.touch_is_in_output = mousex < 0
+                loco.focus = nil
             else
                 CurrentTouch.state = MOVING
                 CurrentTouch.deltaX = CurrentTouch.x - CurrentTouch.prevX
@@ -357,36 +344,19 @@ function loco.drawOutputpane()
     fontSize(12)
 
     -- background
-    love.graphics.setColor(50, 50, 50)
+    love.graphics.setColor(59, 61, 66)
     love.graphics.rectangle("fill", 0, 0, loco.mainwinoffset - 1, HEIGHT)
 
     -- draw paramters
-    for _,w in ipairs(loco.parameterWidgetList) do
-        w:draw()
-    end
+    loco.drawParameterWidgets()
+    --for _,w in ipairs(loco.parameterWidgetList) do
+    --    w:draw()
+    --end
 
     -- frame around pane
-    love.graphics.setColor(125, 125, 125)
-    love.graphics.setLine(2, "rough")
-    love.graphics.rectangle("line", 0, 0, loco.mainwinoffset - 1, HEIGHT)
-
-        love.graphics.print( "watch", 5, 400+14)
-        i=2
-        for k,v in pairs(watchList) do
-            watchList[k]=_G[k]
-            love.graphics.print( k, 5, 400+14*i)
-            love.graphics.print( tostring(watchList[k]), 150, 400+14*i)
-            i=i+1
-        end
-
-        love.graphics.print( "iwatch", 5, 600+14)
-        i=2
-        for k,v in pairs(iwatchList) do
-            iwatchList[k]=_G[k]
-            love.graphics.print( k, 5, 600+14*i)
-            love.graphics.print( tostring(iwatchList[k]), 150, 600+14*i)
-            i=i+1
-        end
+    --love.graphics.setColor(125, 125, 125)
+    --love.graphics.setLine(2, "rough")
+    --love.graphics.rectangle("line", 0, 0, loco.mainwinoffset - 1, HEIGHT)
 end
 
 function loco.touchOutputpane(touch)
