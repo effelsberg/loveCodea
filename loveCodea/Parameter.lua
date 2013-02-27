@@ -62,7 +62,7 @@ function clearParameters()
     loco.parameterWidgetList = {}
 end
 
-function parameter.integer(name, min, max, initial)
+function parameter.integer(name, min, max, initial, callback)
     if min == nil then
         min = 0
         max = 10
@@ -71,11 +71,11 @@ function parameter.integer(name, min, max, initial)
         initial = min
     end
     _G[name] = initial
-    local w = ParameterWidget(0, 0, name, min, max, "int")
+    local w = ParameterWidget(0, 0, name, min, max, callback, "int")
     loco.addParameterWidget(w)
 end
 
-function parameter.number(name, min, max, initial)
+function parameter.number(name, min, max, initial, callback)
     if min == nil then
         min = 0
         max = 1
@@ -84,7 +84,7 @@ function parameter.number(name, min, max, initial)
         initial = min
     end
     _G[name] = initial
-    local w = ParameterWidget(0, 0, name, min, max, "float")
+    local w = ParameterWidget(0, 0, name, min, max, callback, "float")
     loco.addParameterWidget(w)
 end
 
@@ -149,7 +149,7 @@ end
 
 ParameterWidget = class()
 
-function ParameterWidget:init(x, y, name, min, max, type)
+function ParameterWidget:init(x, y, name, min, max, callback, type)
     self.x = x
     self.y = y
     self.w = loco.width_of_output_pane
@@ -157,11 +157,15 @@ function ParameterWidget:init(x, y, name, min, max, type)
     self.min = min
     self.max = max
     self.name = name
+    self.callback = callback
     self.type = type
     self.touchid = 0
     -- unclamped x position of touch, only valid if touchid ~= 0
     self.touchx = 0
     self:update()
+    if self.callback ~= nil then
+        self.callback(_G[self.name])
+    end
 end
 
 function ParameterWidget:update()
@@ -212,7 +216,13 @@ function ParameterWidget:touched(touch)
             if self.type == "int" then
                 value = math.floor(value + 0.5)
             end
-            _G[self.name] = value + self.min
+            value = value + self.min
+            if _G[self.name] ~= value then
+                _G[self.name] = value
+                if self.callback ~= nil then
+                    self.callback(value)
+                end
+            end
         end
     elseif touch.state == ENDED then
         if touch.id == self.touchid then
