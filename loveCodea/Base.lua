@@ -316,6 +316,7 @@ function love.update(dt)
     ElapsedTime = love.timer.getTime()
 
     loco.updatePhysics(dt)
+    tween.update(dt)
 end
 
 function love.draw()
@@ -467,4 +468,8 @@ function isKeyboardShowing()
 end
 
 function clearOutput()
+end
+
+output = {}
+function output.clear()
 end
