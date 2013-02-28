@@ -295,21 +295,60 @@ end
 function WatchParameterWidget:touched(touch)
 end
 
+-- Get the table and the name (final component) of the associated variable.
+-- In a simple case like "var" it would be |_G| and |"var"| so that _G["var"]
+-- accesses the value of the variable.
+-- A more complex case would be e.g. "currentTest.name" that leads to
+-- |_G["currentTest"]| and |"name"|.
+-- Traverses arbitrarily nested names.
+-- Returns table (starting with |_G|), final name.
+-- May return nil.
+function WatchParameterWidget:getVartableAndName()
+    local vartable = _G
+    local name = self.name
+    local dot
+    repeat
+        dot = string.find(name, "%.")
+        if dot ~= nil then
+            local part = string.sub(name, 1, dot - 1)
+            name = string.sub(name, dot + 1)
+            vartable = vartable[part]
+        end
+        -- early return
+        if vartable == nil then
+            return nil
+        end
+    until dot == nil
+    return vartable, name
+end
+
 function WatchParameterWidget:draw()
     pushStyle()
 
-    -- Print name
-    fontSize(12)
-    loco.selectParameterNameColor();
-    love.graphics.print(self.name, self.x + 15, self.y + 10)
+    local l_edge = self.x + 15
 
-    -- Print value
+    fontSize(12)
+    local f = love.graphics.getFont()
+    local fheight = f:getHeight()
+
+    -- Print name
+    loco.selectParameterNameColor();
+    love.graphics.print(self.name, l_edge, self.y + 10)
+
+    -- Print value, can be more than one line
     loco.selectParameterValueColor();
-    if _G[self.name] ~= nil then
-        love.graphics.print(tostring(_G[self.name]), self.x + 15, self.y + 30)
+    local vartable, name = self:getVartableAndName()
+    local strw, strlines = 0, 1
+    if vartable == nil then
+        love.graphics.print("nil", l_edge, self.y + 30)
+    else
+        local value = tostring(vartable[name])
+        love.graphics.printf(value, l_edge, self.y + 30, self.w - 30)
+        strw, strlines = f:getWrap(value, self.w - 30)
     end
 
     --self.h = 50
+    self.h = 30 + strlines * fheight + 15
 
     popStyle()
 end
