@@ -63,6 +63,11 @@ access this folder using the -s or -all option.
 Also copy the `Examples` folder from the Codea app. Examples are always a
 good idea.
 
+To extract files from the app locate it within iTunes, then use
+"Show in Finder" to get to the location of the app in a Finder window.
+Make a copy of the .ipa file and rename it to a zip file in order to unzip
+it easily.
+
 ### The stage
 
 The stage is a folder (usually with that name) that will be created to bring
