@@ -15,6 +15,7 @@
 -- Implements public Codea API:
 --   parameter.number()
 --   parameter.integer()
+--   parameter.boolean()
 --   parameter.watch()
 --   parameter.action()
 --   parameter.text()
@@ -85,6 +86,11 @@ function parameter.number(name, min, max, initial, callback)
     end
     _G[name] = initial
     local w = ParameterWidget(0, 0, name, min, max, callback, "float")
+    loco.addParameterWidget(w)
+end
+
+function parameter.boolean(name, initial, callback)
+    local w = BooleanParameterWidget(0, 0, name, initial, callback)
     loco.addParameterWidget(w)
 end
 
@@ -268,6 +274,154 @@ function ParameterWidget:draw()
     local strw = f:getWidth(valuestr)
     loco.selectParameterValueColor();
     love.graphics.print(valuestr, self.x + self.w - 15 - strw, self.y)
+
+    popStyle()
+end
+
+-- -- ---- ------ ---------- ---------------- --------------------------
+--
+-- Boolean
+--
+-- -- ---- ------ ---------- ---------------- --------------------------
+
+BooleanParameterWidget = class()
+
+--
+--  |------- outer punch hole ------|
+--  ox1                           ox2
+--    |----- inner punch hole ----|
+--    ix1                       ix2
+--
+--    /---------------------------\
+--   //---\                        \
+--  //     \                        \
+--  || peg |                        |
+--  ||     |                        |
+--  \\     /                        /
+--   \\---/                        /
+--    \---------------------------/
+--
+
+function BooleanParameterWidget:init(x, y, name, initial, callback)
+    self.x = x
+    self.y = y
+    self.w = loco.width_of_output_pane
+    self.h = 50
+    self.name = name
+    _G[self.name] = initial
+    self.callback = callback
+    self.punchhole_w = 50
+    self.peg_r = 14
+    self.touchid = 0
+    -- unclamped x position of touch, only valid if touchid ~= 0
+    self.touchx = 0
+    self:update()
+    if self.callback ~= nil then
+        self.callback(_G[self.name])
+    end
+end
+
+function BooleanParameterWidget:update()
+    -- ix1/ox2: left edge of inner / outer punch hole
+    -- ix2/ox2: right edge of inner / outer punch hole
+    -- xm: middle of x1 and x2
+    self.ix2 = self.x + self.w - 15 - self.peg_r
+    self.ix1 = self.ix2 - self.punchhole_w
+    self.ox2 = self.x + self.w - 15
+    self.ox1 = self.ox2 - self.punchhole_w - (2 * self. peg_r)
+    self.xm = (self.ix1 + self.ix2) / 2
+end
+
+-- Returns x clamped to the edges of the slider.
+function BooleanParameterWidget:clamp(x)
+    if x < self.ix1 then x = self.ix1 end
+    if x > self.ix2 then x = self.ix2 end
+    return x
+end
+
+-- Returns the x-coordinate the peg.
+function BooleanParameterWidget:getxp()
+    local value = _G[self.name]
+    local xp
+    if self.touchid == 0 then
+        xp = self.x + self.w - 15 - self.peg_r
+        if value == false then
+            xp = xp - self.punchhole_w
+        end
+    else
+        xp = self:clamp(self.touchx)
+    end
+    return xp
+end
+
+function BooleanParameterWidget:touched(touch)
+    local xp = self:getxp()
+    local y = self.y + 25
+    self.touchx = touch.x
+
+    if touch.state == BEGAN then
+        local x = touch.x
+        local dy = y - touch.y
+        -- touched within the confines of the outer punch hole
+        if x >= self.ox1 and x <= self.ox2 and math.abs(dy) <= self.peg_r then
+            self.touchid = touch.id
+        end
+    elseif touch.state == MOVING then
+        -- handled as a common case for BEGAN and MOVING
+    elseif touch.state == ENDED then
+        if touch.id == self.touchid then
+            self.touchid = 0
+        end
+    end
+
+    if touch.id == self.touchid then
+        local tx = self:clamp(touch.x)
+        local value = tx > self.xm
+        _G[self.name] = value
+        if self.callback ~= nil then
+            self.callback(value)
+        end
+    end
+end
+
+function BooleanParameterWidget:draw()
+    pushStyle()
+
+    -- name
+    fontSize(12)
+    loco.selectParameterNameColor();
+    love.graphics.print(self.name, self.x + 15, self.y + 20)
+
+    -- value
+    local peg_r = self.peg_r
+    local y = self.y + 25
+    local xp = self:getxp()
+
+    -- stencil for punch hole with rounded corners
+    local punchhole_stencil = function()
+        love.graphics.rectangle("fill", self.ix1, y - peg_r, self.punchhole_w, 28)
+        love.graphics.circle("fill", self.ix1, y, peg_r, 20)
+        love.graphics.circle("fill", self.ix2, y, peg_r, 20)
+    end
+    local stencil = love.graphics.newStencil(punchhole_stencil)
+    love.graphics.setStencil(stencil)
+
+    -- draw slider
+    love.graphics.setColor(132, 145, 151, 255)
+    love.graphics.rectangle("fill", xp - 65, y - peg_r, 65, 2 * peg_r)
+    love.graphics.setColor(202, 225, 231, 255)
+    love.graphics.rectangle("fill", xp, y - peg_r, 65, 2 * peg_r)
+    -- numbers on slider
+    fontSize(20)
+    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.print("I", xp - 40, y - 10)
+    love.graphics.setColor(0, 0, 0, 255)
+    love.graphics.print("0", xp + 40, y - 10)
+    love.graphics.setStencil()
+
+    -- draw peg
+    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.circle("fill", xp, y, peg_r, 20)
 
     popStyle()
 end
