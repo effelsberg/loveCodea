@@ -88,8 +88,8 @@ function parameter.number(name, min, max, initial, callback)
     loco.addParameterWidget(w)
 end
 
-function parameter.watch(name)
-    local w = WatchParameterWidget(0, 0, name)
+function parameter.watch(expr)
+    local w = WatchParameterWidget(0, 0, expr)
     loco.addParameterWidget(w)
 end
 
@@ -280,12 +280,13 @@ end
 
 WatchParameterWidget = class()
 
-function WatchParameterWidget:init(x, y, name)
+function WatchParameterWidget:init(x, y, expr)
     self.x = x
     self.y = y
     self.w = loco.width_of_output_pane
     self.h = 50
-    self.name = name
+    self.expr = expr
+    self.evaluator = loadstring("return " .. expr)
     self:update()
 end
 
@@ -293,33 +294,6 @@ function WatchParameterWidget:update()
 end
 
 function WatchParameterWidget:touched(touch)
-end
-
--- Get the table and the name (final component) of the associated variable.
--- In a simple case like "var" it would be |_G| and |"var"| so that _G["var"]
--- accesses the value of the variable.
--- A more complex case would be e.g. "currentTest.name" that leads to
--- |_G["currentTest"]| and |"name"|.
--- Traverses arbitrarily nested names.
--- Returns table (starting with |_G|), final name.
--- May return nil.
-function WatchParameterWidget:getVartableAndName()
-    local vartable = _G
-    local name = self.name
-    local dot
-    repeat
-        dot = string.find(name, "%.")
-        if dot ~= nil then
-            local part = string.sub(name, 1, dot - 1)
-            name = string.sub(name, dot + 1)
-            vartable = vartable[part]
-        end
-        -- early return
-        if vartable == nil then
-            return nil
-        end
-    until dot == nil
-    return vartable, name
 end
 
 function WatchParameterWidget:draw()
@@ -333,19 +307,13 @@ function WatchParameterWidget:draw()
 
     -- Print name
     loco.selectParameterNameColor();
-    love.graphics.print(self.name, l_edge, self.y + 10)
+    love.graphics.print(self.expr, l_edge, self.y + 10)
 
     -- Print value, can be more than one line
     loco.selectParameterValueColor();
-    local vartable, name = self:getVartableAndName()
-    local strw, strlines = 0, 1
-    if vartable == nil then
-        love.graphics.print("nil", l_edge, self.y + 30)
-    else
-        local value = tostring(vartable[name])
-        love.graphics.printf(value, l_edge, self.y + 30, self.w - 30)
-        strw, strlines = f:getWrap(value, self.w - 30)
-    end
+    local value = tostring(self.evaluator())
+    love.graphics.printf(value, l_edge, self.y + 30, self.w - 30)
+    strw, strlines = f:getWrap(value, self.w - 30)
 
     --self.h = 50
     self.h = 30 + strlines * fheight + 15
