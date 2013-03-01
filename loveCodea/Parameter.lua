@@ -94,6 +94,11 @@ function parameter.boolean(name, initial, callback)
     loco.addParameterWidget(w)
 end
 
+-- Dummy implementation
+function parameter.color(name, initial, callback)
+    _G[name] = initial
+end
+
 function parameter.watch(expr)
     local w = WatchParameterWidget(0, 0, expr)
     loco.addParameterWidget(w)
