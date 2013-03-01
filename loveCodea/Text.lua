@@ -45,7 +45,14 @@ function text(str, x, y)
         local align = "left"
         if loco.style.textalign == RIGHT then align = "right" end
         if loco.style.textalign == CENTER then align = "center" end
-        love.graphics.printf(str, 0, -h, loco.style.textwrapwidth, align)
+        if loco.style.textmode == CENTER then
+            local strw, strlines = f:getWrap(str, loco.style.textwrapwidth)
+            h = h * strlines
+            love.graphics.printf(str, -strw / 2, -h / 2, loco.style.textwrapwidth, align)
+        else
+            -- CORNER (lower left)
+            love.graphics.printf(str, 0, -h, loco.style.textwrapwidth, align)
+        end
     end
     love.graphics.pop()
 end
