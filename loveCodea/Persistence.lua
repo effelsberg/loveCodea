@@ -46,8 +46,15 @@ function loco.readPlist(filename)
     local pos = 0
     local pos, key = loco.nextKey(m, pos)
     while key ~= nil do
+        local v, n
         pos, v = loco.nextValue(m, pos)
-        dict[key] = v
+        -- Reading hot fix. Interpret as a number if it looks like a number.
+        n = tonumber(v)
+        if n ~= nil then
+            dict[key] = n
+        else
+            dict[key] = v
+        end
         pos, key = loco.nextKey(m, pos)
     end
     return "ok", dict
