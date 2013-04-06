@@ -124,6 +124,7 @@ This is an example `main.lua` file for the Bezier demo at the time of writing:
     require("loveCodea/Text")
     require("loveCodea/Vector")
     require("loveCodea/Z")
+    require("loveCodea/tween")
     -- Load Bezier
     require("Bezier/main")
 
