@@ -19,6 +19,7 @@
 --   readProjectData()
 --   saveProjectData()
 --   listProjectData()
+--   clearProjectData()
 --   readProjectInfo()
 --   saveProjectInfo()
 --   readGlobalData()
@@ -228,6 +229,10 @@ function listProjectData()
         table.insert(keys, k)
     end
     return keys
+end
+
+function clearProjectData()
+    loco.writePlist("Data.plist", {})
 end
 
 function readProjectInfo(key, default)
