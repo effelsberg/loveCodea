@@ -39,7 +39,11 @@ function image:init(w, h)
     -- under Windows). Keep the canvas and only rebuild the imagedata.
     -- Start with a canvas.
     self._canvas = love.graphics.newCanvas(w, h)
+    -- |clear| is affected by scissor, therefore reset it temporarily.
+    local sx, sy, sw, sh = love.graphics.getScissor()
+    love.graphics.setScissor()
     self._canvas:clear()
+    love.graphics.setScissor(sx, sy, sw, sh)
     self._imagedata = nil
     -- Representaion of _imagedata as it cannot be rendered directly by Love.
     self._image = nil
@@ -54,9 +58,9 @@ function image:_workOnCanvas()
         end
         loco.unwindTransformations()
         --self._canvas = love.graphics.newCanvas(w, h)
-        self._canvas:clear()
         love.graphics.setCanvas(self._canvas)
         love.graphics.setScissor()
+        self._canvas:clear()
         love.graphics.setColor(255, 255, 255, 255)
         love.graphics.draw(self._image, 0, 0)
         --loco.setupCurrentContext()
