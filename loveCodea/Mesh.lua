@@ -128,15 +128,22 @@ function mesh:_drawRectangles()
                 yscale = yscale * tex_ys
             end
             if c ~= nil then
-                love.graphics.setColorMode("modulate")
+                --love.graphics.setColorMode("modulate")
             else
-                love.graphics.setColorMode("replace")
+                --love.graphics.setColorMode("replace")
             end
             love.graphics.draw(drawable, x0 - w / 2, y0 - h / 2, 0, xscale, -yscale)
-            love.graphics.setColorMode("modulate")
+            --love.graphics.setColorMode("modulate")
         end
         love.graphics.pop()
     end
+end
+
+function colorwrap(c)
+    if c < 0 then c = -c end
+    if c > 510 then c = c % 510 end
+    if c > 255 then c = 255 - c end
+    return c
 end
 
 function mesh:_drawTriangles()
@@ -155,7 +162,7 @@ function mesh:_drawTriangles()
         local x2, y2 = v[i + 1]:unpack()
         local x3, y3 = v[i + 2]:unpack()
         if c == nil then
-            love.graphics.triangle("fill", x1, y1, x2, y2, x3, y3)
+            love.graphics.polygon("fill", x1, y1, x2, y2, x3, y3)
         else
             local c1 = c[i]
             local c2 = c[i + 1]
@@ -163,9 +170,21 @@ function mesh:_drawTriangles()
             -- TODO Better compare the contained values
             if c1 == c2 and c1 == c3 then
                 love.graphics.setColor(c1.r, c1.g, c1.b, c1.a)
-                love.graphics.triangle("fill", x1, y1, x2, y2, x3, y3)
+                love.graphics.polygon("fill", x1, y1, x2, y2, x3, y3)
             else
-                mesh:_drawTriangle(x1, y1, c1, x2, y2, c2, x3, y3, c3)
+                --love.graphics.setColor(c1.r, c1.g, c1.b, c1.a)
+                --love.graphics.polygon("fill", x1, y1, x2, y2, x3, y3)
+                local vertices = {
+                    --{ x1, y1,    0, 0,    c1.r, c1.g, c1.b, c1.a },
+                    --{ x2, y2,    1, 0,    c2.r, c2.g, c2.b, c2.a },
+                    --{ x3, y3,    0, 1,    c3.r, c3.g, c3.b, c3.a },
+                    { x1, y1,    0, 0,    colorwrap(c1.r), colorwrap(c1.g), colorwrap(c1.b), colorwrap(c1.a) },
+                    { x2, y2,    1, 0,    colorwrap(c2.r), colorwrap(c2.g), colorwrap(c2.b), colorwrap(c2.a) },
+                    { x3, y3,    0, 1,    colorwrap(c3.r), colorwrap(c3.g), colorwrap(c3.b), colorwrap(c3.a) },
+                }
+                --local mesh = love.graphics.newMesh(vertices, nil, "fan")
+                local mesh = love.graphics.newMesh(vertices)
+                love.graphics.draw(mesh, 0, 0)
             end
         end
     end
@@ -288,7 +307,8 @@ function mesh:_drawHLine(x1, x2, y, c1, c2)
     ig = (c2.g - c1.g) / dx
     ib = (c2.b - c1.b) / dx
     ia = (c2.a - c1.a) / dx
-    love.graphics.setPoint(3, "rough")
+    love.graphics.setPointSize(3)
+    love.graphics.setPointStyle("rough")
     while x1 < x2 do
         if r > 255 then r = 255 end
         if g > 255 then g = 255 end

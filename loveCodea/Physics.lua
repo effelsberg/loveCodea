@@ -203,13 +203,14 @@ function physics.body(bodytype, ...)
     local body = loco.Body()
     local make_fixture = false
     --body.shapeType = bodytype
+    local arg = {...}
     body._body = love.physics.newBody(loco.world, 0, 0, "dynamic")
     if bodytype == POLYGON then
         body.shapeType = POLYGON
         local points = {}
         local parts = {}
         local npoints = 0
-        for i = 1,arg.n do
+        for i = 1,#arg do
             if type(arg[i]) == "number" then
                 table.insert(parts, arg[i])
                 npoints = npoints + 1
@@ -285,7 +286,10 @@ function loco.Joint.getProperty:anchorB()
 end
 
 function loco.Joint.setProperty:enableLimit(v)
-    self._joint:enableLimit(v)
+    -- not all joints have limits
+    if self._joint.enableLimit then
+        self._joint:enableLimit(v)
+    end
 end
 
 function loco.Joint.getProperty:upperLimit(v)

@@ -46,8 +46,8 @@ end
 
 function loco.loadSprite(filename)
     if loco.sprite_list[filename] == nil then
-        local realname1 = filename:gsub("\:",".spritepack/") .. ".png"
-        local realname2 = filename:gsub("\:","/") .. ".png"
+        local realname1 = filename:gsub("%:",".spritepack/") .. ".png"
+        local realname2 = filename:gsub("%:","/") .. ".png"
         if love.filesystem.isFile(realname1) then
             loco.sprite_list[filename] = love.graphics.newImage(realname1)
         else
@@ -79,9 +79,9 @@ function loco.spriteDraw(image, x, y, width, height)
     height = height or h
 
     if loco.style.notint then
-        love.graphics.setColorMode("replace")
+        love.graphics.setBlendMode("replace")
     else
-        love.graphics.setColorMode("modulate")
+        love.graphics.setBlendMode("alpha")
         love.graphics.setColor(unpack(loco.style.tintcolor))
     end
     x = x or 0
@@ -111,5 +111,5 @@ function loco.spriteDraw(image, x, y, width, height)
         love.graphics.draw(image, 0, -height, 0, sx, sy)
     end
     love.graphics.pop()
-    love.graphics.setColorMode("modulate")
+    love.graphics.setBlendMode("alpha")
 end

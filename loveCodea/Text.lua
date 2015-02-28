@@ -70,6 +70,7 @@ end
 
 function textWrapWidth(w)
     if w == nil then return loco.style.textwrapwidth end
+    if w < 0 then w = 0 end
     loco.style.textwrapwidth = w
 end
 

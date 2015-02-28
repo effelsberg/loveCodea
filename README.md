@@ -11,7 +11,7 @@ Cargo-Bot "example", if you dare calling it like this.
 
 ### LÖVE
 
-You need [**LÖVE 0.8.0**](http://www.love2d.org), earlier versions are not supported.
+You need [**LÖVE 0.9.2**](http://www.love2d.org), earlier versions are not supported.
 
 ### Operating Systems
 

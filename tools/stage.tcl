@@ -190,6 +190,37 @@ proc removeOldLocoReferences {stage projectfolder} {
     }
 }
 
+# Scans all project files for deprecated features and patches them.
+# Writes file back in case of modification.
+# Known deprecated features are varargs and the "\^" escape pattern.
+proc hotpatchDeprecatedFeatures {stage projectfolder} {
+    set filenames [glob -dir [file join $stage $projectfolder] -types {f} *]
+    foreach filename $filenames {
+        # Read the file
+        set f [open $filename r]
+        set contents [read $f]
+        close $f
+        # Add "local arg = {...}" to function defs that end with "...)"
+        set mod1 [regsub -all -line {function .*\.\.\.\s*\)\s*} $contents "& local arg = {...}" contents]
+        # Rename "arg.n" to "#arg"
+        set mod2 [regsub -all {arg\.n} $contents "#arg" contents]
+        # Replace escape sequence "\^" with "%^"
+        set mod3 [regsub -all {\\\^} $contents "%^" contents]
+        if {$mod1 || $mod2} {
+            puts "[file tail $filename]: [expr {$mod1 + $mod2}]x hotpatch for arg applied"
+        }
+        if {$mod3} {
+            puts "[file tail $filename]: ${mod3}x hotpatch for escape sequence applied"
+        }
+        # Write back if there was any modification
+        if {$mod1 || $mod2 || $mod3} {
+            set f [open $filename w]
+            puts -nonewline $f $contents
+            close $f
+        }
+    }
+}
+
 # Moves spritepacks from the project folder into the stage where loveCodea
 # can find them. Useful for non-default spritepacks (Documents:...).
 proc moveProjectSpritepacksToStage {stage projectfolder} {
@@ -242,9 +273,9 @@ proc generateConf {stage projectfolder} {
     puts $f "function love.conf(t)"
     puts $f "    t.title         = \"$projectname\""
     puts $f "    t.identity      = \"$projectname\""
-    puts $f "    t.version       = \"0.8.0\""
-    puts $f "    t.screen.width  = 1024"
-    puts $f "    t.screen.height = 768"
+    puts $f "    t.version       = \"0.9.2\""
+    puts $f "    t.window.width  = 1024"
+    puts $f "    t.window.height = 768"
     puts $f "end"
     close $f
 }
@@ -297,6 +328,7 @@ file mkdir $O(stage)
 puts "Copying $O(projorigin) into $O(stage)/$stageproject"
 file copy $O(projorigin) $O(stage)/$stageproject
 removeOldLocoReferences $O(stage) $stageproject
+hotpatchDeprecatedFeatures $O(stage) $stageproject
 moveProjectSpritepacksToStage $O(stage) $stageproject
 
 puts "Copying loveCodea into $O(stage)"

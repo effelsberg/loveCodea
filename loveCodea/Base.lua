@@ -147,7 +147,7 @@ function love.load()
     --noStroke()
     --fill(128, 128, 128, 255)
     --stroke(255, 255, 255, 255)
-    love.graphics.setColorMode("modulate")
+    love.graphics.setBlendMode("alpha")
     loco.setupCurrentContext()
     setup()
     loco.teardownCurrentContext()
@@ -450,7 +450,7 @@ function loco.updateDisplayDimensions()
     if displayw ~= loco.displayw or displayh ~= loco.displayh then
         loco.displayw = displayw
         loco.displayh = displayh
-        love.graphics.setMode(displayw, displayh)
+        love.window.setMode(displayw, displayh)
     end
 end
 
